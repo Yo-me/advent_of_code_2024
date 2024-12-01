@@ -11,6 +11,6 @@ end
 left.sort!
 right.sort!
 
-puts (left.zip(right).map do |a|
-    a.reduce(:-).abs
-end.reduce(:+))
+puts (left.zip(right).inject(0) do |acc, a|
+    acc += a.reduce(:-).abs
+end)
