@@ -13,6 +13,7 @@ right.sort!
 
 counts = left.map {|value| right.count(value) }
 
-puts (left.each_with_index.map do |value, index|
-    value * counts[index]
-end.to_a.reduce(:+))
+puts (left.zip(counts).map do |a|
+    a.reduce(:*)
+end.reduce(:+))
+

@@ -11,6 +11,6 @@ end
 left.sort!
 right.sort!
 
-puts (left.each_with_index.map do |value, index|
-    (value - right[index]).abs
-end.to_a.reduce(:+))
+puts (left.zip(right).map do |a|
+    a.reduce(:-).abs
+end.reduce(:+))
