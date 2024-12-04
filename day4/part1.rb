@@ -1,4 +1,4 @@
-text = File.open("input.txt", "r").readlines
+text = File.open("input.txt", "r").readlines#.map {|l| l.strip }
     
 line_length = text[0].length
 XMAS = "XMAS"
@@ -6,64 +6,34 @@ count = 0
 (0...text.length).each do |line_index|
     (0...line_length).each do |col_index|
         if text[line_index][col_index] == "X"
-            # Look left if possible
-            if col_index >= XMAS.length - 1
-                found = [true, true]
-                (0...XMAS.length).each do |index|
-                    if XMAS[XMAS.length - index - 1] != text[line_index][col_index - index]
-                        found[0] = false
-                    end
-                    if XMAS[index] != text[line_index][col_index - index]
-                        found[1] = false
-                    end
-                end
-                count += found.count(true)
-            end
-            # Look right if possible
-            if col_index + XMAS.length - 1 < line_length
-                found = [true, true]
-                (0...XMAS.length).each do |index|
-                    if XMAS[XMAS.length - index - 1] != text[line_index][col_index + index]
-                        found[0] = false
-                    end
-                    if XMAS[index] != text[line_index][col_index + index]
-                        found[1] = false
-                    end
-                end
-                count += found.count(true)
-            end
-            # Look down if possible
-            if line_index + XMAS.length - 1 < text.length
-                found = [true, true]
-                (0...XMAS.length).each do |index|
-                    if XMAS[XMAS.length - index - 1] != text[line_index + index][col_index]
-                        found[0] = false
-                    end
-                    if XMAS[index] != text[line_index + index][col_index]
-                        found[1] = false
-                    end
-                end
-                count += found.count(true)
-            end
+            found = Array.new(8, true)
+            (0...XMAS.length).each do |index|
+                found[0] = false if XMAS[index] != text[line_index][col_index + index]
+                found[1] = false if XMAS[index] != text[line_index][col_index - index]
 
-            # Look up if possible
-            if line_index >= XMAS.length - 1
-                puts line_index
-                found = [true, true]
-                (0...XMAS.length).each do |index|
-                    if XMAS[XMAS.length - index - 1] != text[line_index - index][col_index]
-                        found[0] = false
-                    end
-
-                    if XMAS[index] != text[line_index - index][col_index]
-                        found[1] = false
-                    end
+                # we can look down
+                if text[line_index + index]
+                    found[2] = false if XMAS[index] != text[line_index + index][col_index]
+                    found[3] = false if XMAS[index] != text[line_index + index][col_index + index]
+                    found[4] = false if XMAS[index] != text[line_index + index][col_index - index]
+                else
+                    found[2] = false
+                    found[3] = false
+                    found[4] = false
                 end
-                if found[0] == true || found[1] == true
-                    puts "(#{line_index}, #{col_index})"
+                #we can look up
+                if text[line_index - index]
+                    found[5] = false if XMAS[index] != text[line_index - index][col_index]
+                    found[6] = false if XMAS[index] != text[line_index - index][col_index + index]
+                    found[7] = false if XMAS[index] != text[line_index - index][col_index - index]
+                else
+                    found[5] = false
+                    found[6] = false
+                    found[7] = false
                 end
-                count += found.count(true)
             end
+            puts "(#{line_index},#{col_index}) -> #{found.count(true)} : #{found.inspect}" if found.count(true) != 0
+            count += found.count(true)
         end
     end
 end
