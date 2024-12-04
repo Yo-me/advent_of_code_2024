@@ -9,23 +9,23 @@ count = 0
             found = Array.new(8, true)
             (0...XMAS.length).each do |index|
                 found[0] = false if XMAS[index] != text[line_index][col_index + index]
-                found[1] = false if XMAS[index] != text[line_index][col_index - index]
+                found[1] = false if (col_index - (XMAS.length - 1)) < 0 || XMAS[index] != text[line_index][col_index - index]
 
                 # we can look down
                 if text[line_index + index]
                     found[2] = false if XMAS[index] != text[line_index + index][col_index]
                     found[3] = false if XMAS[index] != text[line_index + index][col_index + index]
-                    found[4] = false if XMAS[index] != text[line_index + index][col_index - index]
+                    found[4] = false if (col_index - (XMAS.length - 1)) < 0 || XMAS[index] != text[line_index + index][col_index - index]
                 else
                     found[2] = false
                     found[3] = false
                     found[4] = false
                 end
                 #we can look up
-                if text[line_index - index]
+                if line_index - (XMAS.length - 1) >= 0
                     found[5] = false if XMAS[index] != text[line_index - index][col_index]
                     found[6] = false if XMAS[index] != text[line_index - index][col_index + index]
-                    found[7] = false if XMAS[index] != text[line_index - index][col_index - index]
+                    found[7] = false if (col_index - (XMAS.length - 1)) < 0 || XMAS[index] != text[line_index - index][col_index - index]
                 else
                     found[5] = false
                     found[6] = false
