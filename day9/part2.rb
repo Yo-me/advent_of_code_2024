@@ -1,106 +1,143 @@
 require 'set'
 
-class Point
-    attr_accessor :x, :y
-    def initialize(x, y)
-        @x = x
-        @y = y
+
+class Block
+    attr_accessor :id, :size, :prev, :next
+
+end
+
+class List
+    attr_accessor :length, :head, :tail
+
+    def initialize()
+        @head = nil
+        @tail = nil
+        @length = 0
     end
 
-    def -(other)
-        Point.new(@x - other.x, @y - other.y)
-    end
-
-    def length()
-        Math.sqrt(@x**2 + @y**2)
-    end
-
-    def normalize()
-        l = self.length()
-        Point.new(@x / l, @y / l)
-    end
-
-    def *(dist)
-        Point.new(@x * dist, @y * dist)
-    end
-
-    def +(other)
-        Point.new(@x + other.x, @y + other.y)
-    end
-
-    def to_s()
-        "{#{@x}, #{@y}}"
-    end
-
-    def inspect()
-        self.to_s
-    end
-
-    def ==(other)
-        @x == other.x && y == other.y
-    end
-
-    def eql?(other)
-        @x == other.x && @y == other.y
-    end
-
-    def hash()
-        [@x, @y].hash
-    end
-
-    def <=>(other)
-        if @x < other.x
-            -1
-        elsif @x > other.x
-            1
-        elsif @y < other.y
-            -1
-        elsif @y > other.y
-            1
+    def <<(block)
+        if @head.nil?
+            @head = block
+            @tail = block
+            @head.prev = nil
+            @head.next = nil
         else
-            0
+            block.prev = @tail
+            block.next = nil
+            @tail.next = block
+            @tail = block
         end
+        @length += 1
+    end
+
+    def remove(block)
+        if block == @tail
+            @tail = block.prev
+            @tail.next = nil
+        elsif block == @head
+            @head = block.next
+            @head.prev = nil
+        else
+            block.next.prev = block.prev
+            block.prev.next = block.next
+        end
+        @length -= 1
+    end
+
+    def insert_after(b, to_insert)
+        to_insert.next = b.next
+        b.next.prev = to_insert if b.next
+        to_insert.prev = b
+        b.next = to_insert
+    end
+
+    def to_s
+        output = ""
+        a = @head
+        while a
+            output += (a.id.nil? ? "." : a.id.to_s) * a.size
+            a = a.next
+        end
+        output
     end
 end
 
-antennas = {}
 
-map = []
+blocks = List.new
 
-File.open("input.txt", "r").each_with_index do |line, row_index|
+File.open("input.txt", "r").each do |line|
     line.strip!
-    map << line
-    (0...line.length).each do |col_index|
-        c = line[col_index]
-        if c != "."
-            antennas[c] = [] if !antennas.has_key?(c)
-            antennas[c] << Point.new(col_index, row_index)
+    block_id = 0
+    reading_empty = false
+    line.each_char do |c|
+        block = Block.new
+        block.size = c.to_i
+
+        if reading_empty
+            block.id = nil
+        else
+            block.id = block_id
         end
+        blocks << block
+        block_id += 1 if !reading_empty
+        reading_empty = !reading_empty
     end
 end
 
-antinodes = Set.new
+puts blocks
 
-antennas.each do |freq, array|
-    array.combination(2).each do |pair|
-        dir = (pair[0] - pair[1])
-        
-        (0..100).each do |factor|
-            offset = dir
-            antinode = pair[0] + (offset * factor)
-            if antinode.x >= 0 && antinode.x < map[0].length && antinode.y >= 0 && antinode.y < map.length
-                antinodes << antinode
-                map[antinode.y][antinode.x] = "#"
+to_relocate = blocks.tail
+
+while !to_relocate.nil?
+    if !to_relocate.id.nil?
+
+        b = blocks.head
+
+        while b != to_relocate
+
+            if b.id.nil? && b.size >= to_relocate.size
+                remaining_size = b.size - to_relocate.size
+                empty = Block.new
+                empty.id = nil
+                empty.size = to_relocate.size
+                next_block = to_relocate.next
+                blocks.remove(to_relocate)
+                blocks.insert_after(to_relocate.prev, empty)
+                blocks.insert_after(b.prev, to_relocate)
+                if remaining_size == 0
+                    blocks.remove(b)
+                else
+                    b.size = remaining_size
+                end
+                to_relocate = next_block
+
+                break
             end
-            offset = dir * -1
-            antinode = pair[1] + (offset * factor)
-            if antinode.x >= 0 && antinode.x < map[0].length && antinode.y >= 0 && antinode.y < map.length
-                    antinodes << antinode
-            end
+
+            b = b.next
         end
     end
+    if to_relocate
+        to_relocate = to_relocate.prev
+    else
+        to_relocate = blocks.tail
+    end
 end
-map.each do |l|
-    puts l
+
+b = blocks.head
+
+checksum = 0
+index = 0
+
+while !b.nil?
+    if !b.id.nil?
+        (index...index + b.size).each do |i|
+            checksum += i * b.id
+        end
+    end
+    index += b.size
+    b = b.next
 end
-puts antinodes.length
+puts blocks
+
+puts checksum
