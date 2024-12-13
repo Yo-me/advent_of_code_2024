@@ -5,28 +5,39 @@ File.open("input.txt", "r").each do |line|
     values = line.strip.split(' ').map(&:to_i)
 end
 
-(0...75).each do |i|
-    index = 0
-    size = values.length
-    while(index < size)
-        if(values[index] == 0)
-            values[index] += 1
-        else
-            log = (Math.log(values[index], 10).floor + 1).to_i
-            if log  % 2 == 0
-                v1 = (values[index] / 10**(log/2)).to_i
-                v2 = values[index] - (v1 * 10**(log/2))
-                values[index] = v1
-                values << v2
-            else
-                values[index] *= 2024
-            end
-        end
-        index += 1
-    end
 
-    #puts values.inspect
-    #break if i == 1
+
+def compute_step(v)
+    if(v == 0)
+            return [v+1, nil]
+    else
+        log = (Math.log(v, 10).floor + 1).to_i
+        if log  % 2 == 0
+            v1 = (v / 10**(log/2)).to_i
+            v2 = v - (v1 * 10**(log/2))
+            return [v1, v2]
+        else
+            return [v * 2024, nil]
+        end
+    end
 end
-puts values.inspect
-puts values.length
+Stone_steps = Hash.new do |h, key|
+    h[key] = compute_step(key)
+end
+
+def compute_number(v, step)
+    array = Stone_steps[v].compact
+
+    case step
+    when 1
+        return array.length
+    else
+        return (array.map do |stone|
+            compute_number(stone, step-1)
+        end).reduce(:+)
+    end
+end
+
+puts (values.map do |stone|
+    compute_number(stone, 75)
+end).reduce(:+)
