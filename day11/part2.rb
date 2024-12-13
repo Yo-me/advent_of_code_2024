@@ -25,6 +25,12 @@ Stone_steps = Hash.new do |h, key|
     h[key] = compute_step(key)
 end
 
+Counts = Hash.new do |h, key|
+    h[key] = Hash.new do |counts, step|
+        counts[step] = compute_number(key, step)
+    end
+end
+
 def compute_number(v, step)
     array = Stone_steps[v].compact
 
@@ -32,12 +38,13 @@ def compute_number(v, step)
     when 1
         return array.length
     else
-        return (array.map do |stone|
-            compute_number(stone, step-1)
+        count = (array.map do |stone|
+            Counts[stone][step-1]
         end).reduce(:+)
+        return count
     end
 end
 
 puts (values.map do |stone|
-    compute_number(stone, 75)
+    Counts[stone][75]
 end).reduce(:+)
